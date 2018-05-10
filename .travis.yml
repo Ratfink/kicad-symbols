@@ -7,7 +7,11 @@ before_install:
 - git clone --depth 1 https://github.com/KiCad/kicad-symbols /home/travis/build/kicad-library-old
 - git clone --depth 1 https://github.com/KiCad/kicad-footprints /home/travis/build/kicad-footprints
 
+before_script:
+- new_files=$(git diff --name-only $TRAVIS_COMMIT_RANGE *.lib | sed "s|^|$TRAVIS_BUILD_DIR/|")
+- old_files=$(git diff --name-only $TRAVIS_COMMIT_RANGE *.lib | sed "s|^|/home/travis/build/kicad-library-old/|")
+
 script:
 - cd /home/travis/build/kicad-library-utils/schlib
-- python comparelibs.py --new $TRAVIS_BUILD_DIR/*.lib --old /home/travis/build/kicad-library-old/*.lib --check -v --footprints /home/travis/build/kicad-footprints 
+- if [ ! -z "$new_files" ]; then python comparelibs.py --new $new_files --old $old_files --check -v --footprints /home/travis/build/kicad-footprints; fi
 - python /home/travis/build/kicad-library-utils/check_lib_table.py $TRAVIS_BUILD_DIR/*.lib --table $TRAVIS_BUILD_DIR/sym-lib-table
